@@ -1,0 +1,42 @@
+version: "3.8"
+
+networks:
+  novanet:
+    driver: bridge
+
+services:
+  redis:
+    image: redis/redis-stack-server:latest
+    volumes:
+      - redis_data:/data
+    networks:
+      - novanet
+    restart: always
+
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - chroma_data:/chroma/
+    networks:
+      - novanet
+    restart: always
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - app_data:/data
+    ports:
+      - 8888:8888
+    networks:
+      - novanet
+    depends_on:
+      - redis
+      - chroma
+    user: root
+
+volumes:
+  redis_data:
+  chroma_data:
+  app_data:
