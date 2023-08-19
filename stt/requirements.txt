@@ -1,0 +1,5 @@
+cython
+nemo-toolkit[asr]
+flask==2.0.3
+Werkzeug==2.0.3
+
