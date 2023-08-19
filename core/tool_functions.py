@@ -19,12 +19,20 @@ class Question(BaseModel):
     )
 
 
-class Delivery(BaseModel):
-    package_type: str = Field(
+class DeliveryCost(BaseModel):    
+    city_sender: str = Field(
         ...,
-        description="Вид відправлення",
-        enum=["Вантажі", "Документи", "Шини та диски", "Палети"]
+        description = "Місто відправника"
     )
+    city_recipient: str = Field(
+        ...,
+        description = "Місто отримувача"
+    )
+    cargo_type: str = Field(
+        ...,
+        description = "Тип вантажу: Cargo, Documents, TiresWheels, Pallet"
+    )
+    
     cost: int = Field(
         ...,
         description="Оголошена вартість відправлення, грн"
@@ -95,18 +103,53 @@ def get_package_info(track_number):
     return output
 
 
-def calculate_delivery_cost(package_type, cost, weight, height, width, length) -> float:
+def calculate_delivery_cost(city_sender,
+                            city_recipient,
+                            weight,
+                            cost,
+                            cargo_type,
+                            width,
+                            length,
+                            height,
+                            service_type="WarehouseWarehouse") -> float:
+    """Useful for when you need to estimate the delivery cost"""
     frame = inspect.currentframe()
     args, _, _, values = inspect.getargvalues(frame)
     missings_args = [key for key in args if not values[key]]
     if missings_args:
         message = "Щоб порахувати вартість доставки потрібно надати:\n"
         for i, key in enumerate(missings_args):
-            description = Delivery.__schema_cache__[
+            description = DeliveryСost.__schema_cache__[
                 (True, "#/definitions/{model}")]["properties"][key]["description"]
             message += f"{i+1}. {description}"
         return message
-    return "Орієнтовна вартість перевезення: 42"
+    city_sender_identifier = get_city_identifier(city_sender)
+    city_recipient_identifier = get_city_identifier(city_recipient)
+    request_json = {
+    	"apiKey": NOVA_POST_API_KEY,
+    	"modelName": "InternetDocument",
+    	"calledMethod": "getDocumentPrice",
+    	"methodProperties": {
+    		"CitySender": city_sender_identifier,
+    		"CityRecipient": city_recipient_identifier,
+    		"Weight": weight,
+    		"ServiceType": service_type,
+    		"Cost": str(cost),
+    		"CargoType": cargo_type,
+    		"SeatsAmount": 1,
+            "OptionsSeat": [{
+                    "weight": weight, 
+                    "volumetricWidth": width,
+                    "volumetricLength": length,
+                    "volumetricHeight": height, }
+               ]
+    	}
+    }
+    response = requests.get(url="https://api.novaposhta.ua/v2.0/json/", json=request_json).json()
+    if not response["success"]:
+        return
+    return response['data'][0]['Cost']
+
 
 
 def get_city_identifier(city_name):
