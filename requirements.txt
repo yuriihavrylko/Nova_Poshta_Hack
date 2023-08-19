@@ -1,2 +1,11 @@
+chromadb==0.4.6
+langchain==0.0.265
+openai==0.27.8
+rank-bm25==0.2.2
+redis==5.0.0
+spacy==3.6.1
+tiktoken==0.4.0
+notebook==7.0.2
+https://github.com/explosion/spacy-models/releases/download/uk_core_news_sm-3.6.0/uk_core_news_sm-3.6.0.tar.gz
 streamlit
 audio-recorder-streamlit
