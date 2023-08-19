@@ -119,14 +119,14 @@ def calculate_delivery_cost(city_sender,
     if missings_args:
         message = "Щоб порахувати вартість доставки потрібно надати:\n"
         for i, key in enumerate(missings_args):
-            description = DeliveryСost.__schema_cache__[
+            description = DeliveryCost.__schema_cache__[
                 (True, "#/definitions/{model}")]["properties"][key]["description"]
             message += f"{i+1}. {description}"
         return message
     city_sender_identifier = get_city_identifier(city_sender)
     city_recipient_identifier = get_city_identifier(city_recipient)
     request_json = {
-    	"apiKey": NOVA_POST_API_KEY,
+    	"apiKey": os.environ["NOVA_POST_API_KEY"],
     	"modelName": "InternetDocument",
     	"calledMethod": "getDocumentPrice",
     	"methodProperties": {

@@ -54,7 +54,7 @@ def init_chromadb():
     cached_embedder = CachedEmbeddings.from_bytes_store(OpenAIEmbeddings(model=EMBEDDING_MODEL), redis_emb_store, namespace=EMBEDDING_MODEL)
 
     if CREATE_DATABASE:
-        collection_names = create_knowledge_vectordb(KNOWLEDGE_BASE_DIR, cached_embedder)
+        collection_names = create_knowledge_vectordb(KNOWLEDGE_BASE_DIR, cached_embedder, chroma_emb_client, CHROMA_PERSIST_DIRECTORY)
         print(collection_names)
     return cached_embedder, chroma_emb_client
 
@@ -134,7 +134,7 @@ def init_agent(cached_conversational_rqa, llm):
         ),
         StructuredTool.from_function(
             func=calculate_delivery_cost,
-            args_schema=Delivery,
+            args_schema=DeliveryCost,
             description="Useful for when you need to estimate the delivery cost"
         ),
         StructuredTool.from_function(
@@ -168,5 +168,7 @@ def init_agent(cached_conversational_rqa, llm):
         ]
     )
     agent = initialize_agent(tools, llm, agent=AgentType.OPENAI_FUNCTIONS, llm_prompt=agent_prompt_template, verbose=False)
+    agent.max_iterations = 3
+    agent.max_execution_time = 10
     agent.agent.prompt = agent_prompt_template
     return agent
