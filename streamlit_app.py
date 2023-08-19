@@ -1,6 +1,9 @@
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
 import uuid
+from core.agent import init_agent, init_chromadb, init_content_embeddings, init_qna_retrieval
+from langchain.memory import RedisChatMessageHistory, StreamlitChatMessageHistory
+from core.llm_wrapers import LLMChatHandler
 
 from utils import tts, stt
 from localization.locales import LOCALES
@@ -15,8 +18,8 @@ language = st.radio(
     horizontal=True,
 )
 
-
 st.session_state["language"] = language
+st.caption(f"Session: {st.session_state.get('session_id', '')}")
 
 INITIAL_MESSAGE = [
     {  # Initial message from the assistant
@@ -26,6 +29,15 @@ INITIAL_MESSAGE = [
     },
 ]
 
+@st.cache_resource
+def init_cache():
+    cached_embedder, chroma_emb_client = init_chromadb()
+    context_retriever = init_content_embeddings(cached_embedder, chroma_emb_client)
+    cached_conversational_rqa, llm = init_qna_retrieval(context_retriever, cached_embedder, chroma_emb_client)
+    agent = init_agent(cached_conversational_rqa, llm)
+    return agent
+
+AGENT = init_cache()
 
 # Initialize the chat messages history
 if "messages" not in st.session_state.keys():
@@ -37,6 +49,24 @@ if "history" not in st.session_state:
 if "language" not in st.session_state:
     st.session_state["language"] = language
 
+def get_llm_client(session_id):                
+    chat_history = RedisChatMessageHistory(session_id=session_id, url=f"redis://localhost:6379/2")
+
+    chat_handler = LLMChatHandler(AGENT, chat_history)
+    return chat_handler
+
+def append_message(text, audio=None):
+    msg_obj = {"role": "user", "content": text, "id": uuid.uuid4().hex}
+    if audio:
+        msg_obj["audio"] = audio
+
+    st.session_state.messages.append(msg_obj)
+    
+    response = get_llm_client(st.session_state["session_id"]).send_message(text)
+
+    st.session_state.messages.append(
+        {"role": "assistant", "content": response, "id": uuid.uuid4().hex}
+    )
 
 def build_sidebar():
     with open(f"localization/sidebar_{language}.md", "r") as sidebar_file:
@@ -50,37 +80,29 @@ def build_sidebar():
             del st.session_state[key]
         st.session_state["messages"] = INITIAL_MESSAGE
         st.session_state["history"] = []
+        chat_history.clear()
+        st.experimental_rerun()
 
 
 def build_chat():
-    # Prompt for user input and save
     if prompt := st.chat_input():
-        st.session_state.messages.append(
-            {"role": "user", "content": prompt, "id": uuid.uuid4().hex}
-        )
+        append_message(prompt)
 
-    if uploaded_file := st.file_uploader(
-        LOCALES[language]["choose_audiofile"], type="wav"
-    ):
-        st.session_state.messages.append(
-            {
-                "role": "user",
-                "content": "*audio file*",
-                "audio": uploaded_file.getvalue(),
-                "id": uuid.uuid4().hex,
-            }
-        )
+    # if uploaded_file := st.file_uploader(
+    #     LOCALES[language]["choose_audiofile"], type="wav"
+    # ):
+    #     st.session_state.messages.append(
+    #         {
+    #             "role": "user",
+    #             "content": "*audio file*",
+    #             "audio": uploaded_file.getvalue(),
+    #             "id": uuid.uuid4().hex,
+    #         }
+    #     )
 
     if audio_bytes := audio_recorder(LOCALES[language]["record_audio"]):
         text = stt(audio_bytes, st.session_state["language"])
-        st.session_state.messages.append(
-            {
-                "role": "user",
-                "content": text,
-                "audio": audio_bytes,
-                "id": uuid.uuid4().hex,
-            }
-        )
+        append_message(text, audio_bytes)
 
     for message in st.session_state.messages:
         msg_component = st.chat_message(message["role"])
@@ -97,9 +119,11 @@ def build_chat():
 
 
 build_sidebar()
+
 if "messages" not in st.session_state.keys() or len(st.session_state["messages"]) == 0:
     if st.button(LOCALES[language]["start_chat"]):
         st.session_state["messages"] = INITIAL_MESSAGE
+        st.session_state["session_id"] = uuid.uuid4().hex
         st.experimental_rerun()
 else:
     build_chat()
