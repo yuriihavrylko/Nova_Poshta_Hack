@@ -1,6 +1,7 @@
 import glob
 import os
 
+from langchain.vectorstores import Chroma
 from langchain.document_loaders import TextLoader
 
 
