@@ -9,32 +9,47 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - redis_data:/data/
-    networks:
-      - novanet
+    # networks:
+    #   - novanet
+    ports:
+      - '6379:6379'
     restart: always
 
   chroma:
     image: ghcr.io/chroma-core/chroma:latest
     volumes:
       - chroma_data:/chroma/
-    networks:
-      - novanet
+    # networks:
+    #   - novanet
+    ports:
+      - '8000:8000'
     restart: always
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./knowledge_base/:/app/knowledge_base/
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./knowledge_base/:/app/knowledge_base/
+  #   ports:
+  #     - 8888:8888
+  #   networks:
+  #     - novanet
+  #   depends_on:
+  #     - redis
+  #     - chroma
+  #   user: root
+  tts-api:
+    build: './tts'
     ports:
-      - 8888:8888
-    networks:
-      - novanet
-    depends_on:
-      - redis
-      - chroma
-    user: root
+      - '8889:8889'
+
+  stt-api:
+    build: './stt'
+    ports:
+      - '8890:8890'  
+  #   networks:
+  #     - novanet
 
 volumes:
   redis_data:

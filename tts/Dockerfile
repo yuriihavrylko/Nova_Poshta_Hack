@@ -17,5 +17,5 @@ COPY app.py app.py
 ENV FLASK_APP=app
 
 CMD [ "python", "app.py" ]
-EXPOSE 5000
+EXPOSE 8889
 
