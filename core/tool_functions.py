@@ -100,7 +100,7 @@ def calculate_delivery_cost(package_type, cost, weight, height, width, length) -
     args, _, _, values = inspect.getargvalues(frame)
     missings_args = [key for key in args if not values[key]]
     if missings_args:
-        message = "Щоб порахувати оцінити час доставки потрібно надати:\n"
+        message = "Щоб порахувати вартість доставки потрібно надати:\n"
         for i, key in enumerate(missings_args):
             description = Delivery.__schema_cache__[
                 (True, "#/definitions/{model}")]["properties"][key]["description"]
@@ -135,7 +135,7 @@ def estimate_delivery_date(date, city_sender, city_recipient):
     args, _, _, values = inspect.getargvalues(frame)
     missings_args = [key for key in args if not values[key]]
     if missings_args:
-        message = "Щоб порахувати оцінити вартість відправлення потрібно надати:\n"
+        message = "Щоб оцінити час доставки потрібно надати:\n"
         for i, key in enumerate(missings_args):
             message += f"{i+1}. DeliveryDetails.__schema_cache__[(True, '#/definitions/{{model}}')]['properties'][key]['description']"
         return message

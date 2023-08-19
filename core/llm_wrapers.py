@@ -1,6 +1,6 @@
+import hashlib
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.schema import get_buffer_string
-import hashlib
 
 
 class CachedEmbeddings(CacheBackedEmbeddings):
