@@ -39,7 +39,7 @@ if "language" not in st.session_state:
 
 
 def build_sidebar():
-    with open(f"ui/sidebar_{language}.md", "r") as sidebar_file:
+    with open(f"localization/sidebar_{language}.md", "r") as sidebar_file:
         sidebar_content = sidebar_file.read()
 
     st.sidebar.markdown(sidebar_content)
