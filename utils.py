@@ -1,7 +1,9 @@
 import requests
+import wavfile
+from pydub import AudioSegment
 
 TTS_SERVER = "http://tts.local:8889/synthesize"
-STT_SERVER = "http://stt.local:9000/asr?task=transcribe&encode=true&output=txt"
+STT_SERVER = "http://stt.local:8890/transcribe"
 
 def tts(text_to_voice, language):
     response = requests.post(
@@ -15,8 +17,13 @@ def tts(text_to_voice, language):
 def stt(audio_bytes, language):
     with open("track.wav", "wb") as fp:
         fp.write(audio_bytes)
+
+    sound = AudioSegment.from_wav("track.wav")
+    sound = sound.set_channels(1)
+    sound.export("mono_track.wav", format="wav")
+
     response = requests.post(
-        f"{STT_SERVER}&language={language}",
-        files={"audio_file": open("track.wav", "rb")},
+        f"{STT_SERVER}?language={language}",
+        files={"file": open("mono_track.wav", "rb")},
     )
-    return response.text
+    return response.json()["transcription"]

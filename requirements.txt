@@ -9,3 +9,4 @@ notebook==7.0.2
 https://github.com/explosion/spacy-models/releases/download/uk_core_news_sm-3.6.0/uk_core_news_sm-3.6.0.tar.gz
 streamlit
 audio-recorder-streamlit
+pydub
