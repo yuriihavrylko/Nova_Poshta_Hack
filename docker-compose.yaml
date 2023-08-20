@@ -50,6 +50,17 @@ services:
       novanet:
         aliases:
               - tts.local
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    networks:
+      novanet:
+        aliases:
+              - stt.local
+    ports:
+      - '9000:9000'
+    environment:
+      - ASR_MODEL=small
+      - ASR_ENGINE=openai_whisper
   # stt-api:
   #   build: './stt'
   #   ports:

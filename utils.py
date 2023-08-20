@@ -1,7 +1,7 @@
 import requests
 
 TTS_SERVER = "http://tts.local:8889/synthesize"
-STT_SERVER = "http://localhost:9000/asr?task=transcribe&encode=true&output=txt"
+STT_SERVER = "http://stt.local:9000/asr?task=transcribe&encode=true&output=txt"
 
 def tts(text_to_voice, language):
     response = requests.post(
