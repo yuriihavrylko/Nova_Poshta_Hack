@@ -1,5 +1,4 @@
 import requests
-import wavfile
 from pydub import AudioSegment
 
 TTS_SERVER = "http://tts.local:8889/synthesize"
