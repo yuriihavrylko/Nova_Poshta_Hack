@@ -7,6 +7,7 @@ from core.llm_wrapers import LLMChatHandler
 
 from utils import tts, stt
 from localization.locales import LOCALES
+from PIL import Image
 
 
 chat_history = []
@@ -63,10 +64,14 @@ def append_message(text, audio=None):
     st.session_state.messages.append(msg_obj)
     
     response = get_llm_client(st.session_state["session_id"]).send_message(text)
-
-    st.session_state.messages.append(
-        {"role": "assistant", "content": response, "id": uuid.uuid4().hex}
-    )
+    if response.startswith('Накладна'):
+        st.session_state.messages.append(
+            {"role": "assistant", "content": response, "id": uuid.uuid4().hex, "image": "invoice.jpg"}
+        )
+    else:
+        st.session_state.messages.append(
+            {"role": "assistant", "content": response, "id": uuid.uuid4().hex}
+        )
 
 def build_sidebar():
     with open(f"localization/sidebar_{language}.md", "r") as sidebar_file:
@@ -116,6 +121,8 @@ def build_chat():
             if btn:
                 message["audio"] = tts(message["content"], st.session_state["language"])
                 st.experimental_rerun()
+        if "image" in message:
+            msg_component.image(Image.open(message["image"]))
 
 
 build_sidebar()
