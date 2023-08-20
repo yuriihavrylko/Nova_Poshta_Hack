@@ -29,8 +29,8 @@ from core.utils import *
 import hashlib
 
 
-REDIS_HOST = "localhost"
-CHROMA_HOST = "localhost"
+REDIS_HOST = "redis"
+CHROMA_HOST = "chroma"
 CHROMA_PERSIST_DIRECTORY = "/chroma"
 
 EMBEDDING_MODEL = "text-embedding-ada-002"

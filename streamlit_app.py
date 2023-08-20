@@ -1,7 +1,7 @@
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
 import uuid
-from core.agent import init_agent, init_chromadb, init_content_embeddings, init_qna_retrieval
+from core.agent import init_agent, init_chromadb, init_content_embeddings, init_qna_retrieval, REDIS_HOST
 from langchain.memory import RedisChatMessageHistory, StreamlitChatMessageHistory
 from core.llm_wrapers import LLMChatHandler
 
@@ -50,7 +50,7 @@ if "language" not in st.session_state:
     st.session_state["language"] = language
 
 def get_llm_client(session_id):                
-    chat_history = RedisChatMessageHistory(session_id=session_id, url=f"redis://localhost:6379/2")
+    chat_history = RedisChatMessageHistory(session_id=session_id, url=f"redis://{REDIS_HOST}:6379/2")
 
     chat_handler = LLMChatHandler(AGENT, chat_history)
     return chat_handler

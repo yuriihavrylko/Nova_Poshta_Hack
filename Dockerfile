@@ -9,4 +9,4 @@ COPY . /app/
 
 EXPOSE 8888
 
-ENTRYPOINT jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
+ENTRYPOINT streamlit run streamlit_app.py --server.port 8888
