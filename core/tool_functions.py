@@ -5,6 +5,39 @@ import requests
 from pydantic import BaseModel, Field
 
 
+class Invoice(BaseModel):
+    item_description: str = Field(
+        ...,
+        description="Опис відправлення"
+    )
+    sender_name: str = Field(
+        # ...,
+        description="Прізвище, Ім'я, По батькові відправника",
+        default="-"
+    )
+    reciever_name: str = Field(
+        # ...,
+        description="Прізвище, Ім'я, По батькові отримувача",
+        default="-"
+    )
+    sender_phone: str = Field(
+        ...,
+        description="Номер телефону відправника"
+    )
+    reciever_phone: str = Field(
+        ...,
+        description="Номер телефону отримувача"
+    )
+    post_sender: str = Field(
+        ...,
+        description="Номер відділення, звідки здійснюється відправка"
+    )
+    post_reciever: str = Field(
+        ...,
+        description="Номер відділення, куди здійснюється доставка"
+    )
+
+
 class Package(BaseModel):
     tracking_number: int = Field(
         ...,
@@ -68,6 +101,20 @@ class DeliveryDetails(BaseModel):
         ...,
         description="Назва міста отримувача"
     )
+
+
+def get_invoice(item_description, sender_name, reciever_name, sender_phone, reciever_phone, post_sender, post_reciever):
+    frame = inspect.currentframe()
+    args, _, _, values = inspect.getargvalues(frame)
+    missings_args = [key for key in args if (not values[key]) or (values[key] == "-")]
+    if missings_args:
+        message = "Щоб створити накладну потрібно надати:\n"
+        for i, key in enumerate(missings_args):
+            desc = Invoice.__schema_cache__[(True, "#/definitions/{model}")]['properties'][key]['description']
+            message += f"{i+1}. {desc}\n"
+        return message
+    output = f"Накладна 20450761462654 створена.\nВідправник: {sender_name}, Отримувач: {reciever_name}"
+    return output
 
 
 def get_package_info(track_number):
@@ -180,7 +227,8 @@ def estimate_delivery_date(date, city_sender, city_recipient):
     if missings_args:
         message = "Щоб оцінити час доставки потрібно надати:\n"
         for i, key in enumerate(missings_args):
-            message += f"{i+1}. DeliveryDetails.__schema_cache__[(True, '#/definitions/{{model}}')]['properties'][key]['description']"
+            desc = DeliveryDetails.__schema_cache__[(True, "#/definitions/{model}")]['properties'][key]['description']
+            message += f"{i+1}. {desc}"
         return message
 
     request_json = {

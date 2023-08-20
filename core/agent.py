@@ -41,7 +41,7 @@ RETRIEVER_COLLECTION_SETTINGS = {
     "links": [{"name": "semantic", "k": 1}]
 }
 
-CREATE_DATABASE = False
+CREATE_DATABASE = True
 
 def init_chromadb():
     chroma_emb_client = chromadb.HttpClient(host=CHROMA_HOST, port=8000)
@@ -147,6 +147,12 @@ def init_agent(cached_conversational_rqa, llm):
             func=lambda question: cached_conversational_rqa(question, []),
             args_schema=Question,
             description="Useful for answering any type of questions, always use it if user asks a question",
+            return_direct=True
+        ),
+        StructuredTool.from_function(
+            func=get_invoice,
+            args_schema=Invoice,
+            description="Useful for creating invoice. Використовується для створення електронної накладної (ЕН)",
             return_direct=True
         )
     ]

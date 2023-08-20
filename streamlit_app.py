@@ -63,7 +63,15 @@ def append_message(text, audio=None):
 
     st.session_state.messages.append(msg_obj)
     
-    response = get_llm_client(st.session_state["session_id"]).send_message(text)
+    try:
+        response = get_llm_client(st.session_state["session_id"]).send_message(text)
+        if response == "Agent stopped due to iteration limit or time limit.":
+            response = "Вибачте, але я не можу відповісти на дане запитання. Зверніться до служби підтримки."
+        if not response:
+            response = "Вибачте, але я не можу відповісти на дане запитання."
+    except:
+        response = "Вибачте, але я не можу відповісти на дане запитання."
+
     if response.startswith('Накладна'):
         st.session_state.messages.append(
             {"role": "assistant", "content": response, "id": uuid.uuid4().hex, "image": "invoice.jpg"}
